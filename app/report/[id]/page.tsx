@@ -6,6 +6,8 @@ import Prose from '@/components/Prose';
 import ReadingProgress from '@/components/ReadingProgress';
 import BackToTop from '@/components/BackToTop';
 import Link from 'next/link';
+import TextToSpeech from '@/components/TextToSpeech';
+import MagneticButton from '@/components/MagneticButton';
 
 export const dynamic = 'force-static';
 export const dynamicParams = false;
@@ -129,9 +131,9 @@ export default async function ReportPage({ params }: PageProps) {
                         </div>
 
                         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                            <Link href="/" className="brutal-btn brutal-btn-black" style={{ fontSize: '0.78rem' }}>
+                            <MagneticButton as="link" href="/" className="brutal-btn brutal-btn-black" style={{ fontSize: '0.78rem' }}>
                                 ← BACK TO LIBRARY
-                            </Link>
+                            </MagneticButton>
                         </div>
                     </div>
                 </div>
@@ -152,7 +154,10 @@ export default async function ReportPage({ params }: PageProps) {
                             }}
                         >
                             {html ? (
-                                <Prose html={html} />
+                                <>
+                                    <TextToSpeech text={html} />
+                                    <Prose html={html} />
+                                </>
                             ) : (
                                 <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#888', fontFamily: 'var(--font-mono)' }}>
                                     NO CONTENT FOUND IN THIS DOCUMENT.
@@ -183,9 +188,9 @@ export default async function ReportPage({ params }: PageProps) {
                                 </dl>
 
                                 <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                    <Link href="/" className="brutal-btn brutal-btn-black" style={{ width: '100%', justifyContent: 'center', fontSize: '0.72rem' }}>
+                                    <MagneticButton as="link" href="/" className="brutal-btn brutal-btn-black" style={{ width: '100%', justifyContent: 'center', fontSize: '0.72rem' }}>
                                         ← BACK TO LIBRARY
-                                    </Link>
+                                    </MagneticButton>
                                 </div>
                             </div>
                         </aside>

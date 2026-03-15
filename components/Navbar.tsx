@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
+import MagneticButton from './MagneticButton';
 
 export default function Navbar() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -42,25 +43,24 @@ export default function Navbar() {
                                 fontWeight: 900,
                             }}
                         >
-                            DOC
+                            MY
                         </span>
-                        PRESS
+                        REPORTS
                     </span>
                 </Link>
 
                 {/* Desktop links */}
                 <div className="hidden md:flex items-center gap-2">
-                    <Link href="/" className="brutal-btn brutal-btn-black text-sm">
-                        LIBRARY
-                    </Link>
-                    <a
-                        href="https://drive.google.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    <MagneticButton as="link" href="/#documents" className="brutal-btn brutal-btn-black text-sm">
+                        PUBLICATIONS
+                    </MagneticButton>
+                    <MagneticButton
+                        as="link"
+                        href="mailto:hello@example.com"
                         className="brutal-btn text-sm"
                     >
-                        OPEN DRIVE ↗
-                    </a>
+                        CONTACT ↗
+                    </MagneticButton>
                 </div>
 
                 {/* Mobile hamburger */}
@@ -95,16 +95,15 @@ export default function Navbar() {
                         gap: '0.75rem',
                     }}
                 >
-                    <Link href="/" onClick={() => setMenuOpen(false)} className="brutal-btn brutal-btn-black">
-                        LIBRARY
+                    <Link href="/#documents" onClick={() => setMenuOpen(false)} className="brutal-btn brutal-btn-black" style={{ textDecoration: 'none' }}>
+                        PUBLICATIONS
                     </Link>
                     <a
-                        href="https://drive.google.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href="mailto:hello@example.com"
                         className="brutal-btn"
+                        style={{ textDecoration: 'none' }}
                     >
-                        OPEN DRIVE ↗
+                        CONTACT ↗
                     </a>
                 </div>
             )}

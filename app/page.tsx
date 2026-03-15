@@ -6,6 +6,7 @@ import ReportCard from '@/components/ReportCard';
 import SearchClient from '@/components/SearchClient';
 import ScrollReveal from '@/components/ScrollReveal';
 import MarqueeBar from '@/components/MarqueeBar';
+import MagneticButton from '@/components/MagneticButton';
 
 export const dynamic = 'force-static';
 
@@ -86,12 +87,12 @@ export default async function HomePage() {
 
           {/* Main headline */}
           <h1 className="hero-headline animate-slide-up delay-100">
-            PUBLISH
+            EXPLORE
             <br />
-            WITHOUT{' '}
-            <span className="accent-block">LIMITS.</span>
+            MY{' '}
+            <span className="accent-block">REPORTS.</span>
             <br />
-            READ WITHOUT
+            READ MY
             <br />
             <span
               style={{
@@ -103,7 +104,7 @@ export default async function HomePage() {
                 fontSize: '60%',
               }}
             >
-              SERVERS.
+              THOUGHTS.
             </span>
           </h1>
 
@@ -121,36 +122,23 @@ export default async function HomePage() {
               marginBottom: '2.5rem',
             }}
           >
-            Drop a{' '}
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontWeight: 700,
-                background: 'var(--yellow)',
-                border: '2px solid var(--black)',
-                padding: '0 4px',
-              }}
-            >
-              .docx
-            </span>{' '}
-            into Google Drive. We handle the rest — parsing, building, and delivering your content at the edge at{' '}
-            <strong>O(1)</strong> speed.
+            Welcome to my personal archive. A curated collection of my latest reports,
+            publications, journals, and deep dives across various subjects. Open and free to access.
           </p>
 
           {/* CTA row */}
           <div className="animate-slide-up delay-300" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
-            <a href="#documents" className="brutal-btn" style={{ fontSize: '0.9rem', padding: '0.85rem 2rem' }}>
+            <MagneticButton as="link" href="#documents" className="brutal-btn" style={{ fontSize: '0.9rem', padding: '0.85rem 2rem' }}>
               ↓ BROWSE LIBRARY
-            </a>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
+            </MagneticButton>
+            <MagneticButton
+              as="link"
+              href="mailto:hello@example.com"
               className="brutal-btn brutal-btn-black"
               style={{ fontSize: '0.9rem', padding: '0.85rem 2rem' }}
             >
-              VIEW SOURCE ↗
-            </a>
+              CONTACT ME ↗
+            </MagneticButton>
           </div>
 
           {/* Stats */}
@@ -168,9 +156,9 @@ export default async function HomePage() {
           >
             {[
               { n: `${docs.length}`, label: 'DOCUMENTS' },
-              { n: 'O(1)', label: 'SERVE TIME' },
-              { n: '100%', label: 'STATIC' },
-              { n: '∞', label: 'SCALE' },
+              { n: '100+', label: 'PAGES READ' },
+              { n: '2024', label: 'LATEST ENTRY' },
+              { n: '∞', label: 'INSIGHTS' },
             ].map((s) => (
               <div
                 key={s.label}
@@ -188,7 +176,7 @@ export default async function HomePage() {
       {/* ── Ticker ────────────────────────────────────────────────── */}
       <MarqueeBar />
 
-      {/* ── Architecture diagram strip ─────────────────────────── */}
+      {/* ── Expertise strip ─────────────────────────── */}
       <section style={{ borderBottom: '3px solid var(--black)', background: 'var(--black)', padding: '2rem 0' }}>
         <div className="page-container">
           <div
@@ -207,16 +195,16 @@ export default async function HomePage() {
             }}
           >
             {[
-              { label: 'GOOGLE DRIVE', icon: '🗂️', color: '#ffe135' },
-              { label: '→', icon: '', color: 'transparent' },
-              { label: 'MAMMOTH.JS', icon: '🦣', color: '#ff6b35' },
-              { label: '→', icon: '', color: 'transparent' },
-              { label: 'NEXT.JS SSG', icon: '⚡', color: '#0033ff' },
-              { label: '→', icon: '', color: 'transparent' },
-              { label: 'FIREBASE CDN', icon: '🌐', color: '#00c853' },
+              { label: 'RESEARCH', icon: '🔬', color: '#ffe135' },
+              { label: '•', icon: '', color: 'transparent' },
+              { label: 'STRATEGY', icon: '📈', color: '#ff6b35' },
+              { label: '•', icon: '', color: 'transparent' },
+              { label: 'ANALYSIS', icon: '📊', color: '#0033ff' },
+              { label: '•', icon: '', color: 'transparent' },
+              { label: 'DOCUMENTATION', icon: '📄', color: '#00c853' },
             ].map(({ label, icon, color }, i) =>
-              label === '→' ? (
-                <span key={i} style={{ color: '#555', padding: '0 0.75rem', fontSize: '1.2rem' }}>→</span>
+              label === '•' ? (
+                <span key={i} style={{ color: '#555', padding: '0 0.75rem', fontSize: '1.2rem' }}>•</span>
               ) : (
                 <span
                   key={i}
@@ -267,7 +255,7 @@ export default async function HomePage() {
                     marginBottom: '0.4rem',
                   }}
                 >
-                  ╔══ DOCUMENT LIBRARY
+                  ╔══ MY PUBLICATIONS
                 </p>
                 <h2
                   style={{
@@ -368,17 +356,17 @@ export default async function HomePage() {
                 NO DOCUMENTS YET
               </h3>
               <p style={{ color: '#555', maxWidth: '420px', lineHeight: 1.6 }}>
-                Add <code style={{ fontFamily: 'var(--font-mono)', background: '#f0f0f0', border: '2px solid var(--black)', padding: '1px 6px' }}>.docx</code> files to your Google Drive folder and rebuild to publish them here.
+                There are currently no documents in the library. Please check back later for new reports and publications.
               </p>
-              <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" className="brutal-btn" style={{ marginTop: '0.5rem' }}>
-                OPEN GOOGLE DRIVE ↗
-              </a>
+              <MagneticButton as="link" href="mailto:hello@example.com" className="brutal-btn" style={{ marginTop: '0.5rem' }}>
+                GET IN TOUCH ↗
+              </MagneticButton>
             </div>
           )}
         </div>
       </section>
 
-      {/* ── How it works ─────────────────────────────────────────── */}
+      {/* ── Content Categories ─────────────────────────────────────────── */}
       <section style={{ background: 'var(--black)', borderTop: '5px solid var(--black)', paddingTop: '5rem', paddingBottom: '5rem' }}>
         <div className="page-container">
           <ScrollReveal>
@@ -394,16 +382,16 @@ export default async function HomePage() {
                 paddingBottom: '1rem',
               }}
             >
-              HOW IT WORKS
+              AREAS OF EXPERTISE
             </h2>
           </ScrollReveal>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.5rem' }}>
             {[
-              { step: '01', title: 'WRITE IN WORD', body: 'Author your content in Microsoft Word or Google Docs. Structure with headings, lists, bold text.', color: 'var(--yellow)' },
-              { step: '02', title: 'DROP IN DRIVE', body: 'Save the .docx file to your designated Google Drive folder. That\'s the entire "CMS" action.', color: 'var(--green)' },
-              { step: '03', title: 'AUTO BUILD', body: 'Apps Script detects the change and fires a GitHub Actions webhook. Next.js fetches and parses all docs.', color: 'var(--blue)' },
-              { step: '04', title: 'EDGE DEPLOY', body: 'Firebase Hosting deploys the static files globally. Your readers get O(1) CDN-cached pages instantly.', color: 'var(--red)' },
+              { step: '01', title: 'MARKET RESEARCH', body: 'In-depth analysis of emerging trends, competitive landscapes, and future industry trajectories.', color: 'var(--yellow)' },
+              { step: '02', title: 'TECHNICAL REPORTS', body: 'Detailed whitepapers and technical deep-dives into complex systems and architectures.', color: 'var(--green)' },
+              { step: '03', title: 'STRATEGY JOURNALS', body: 'Ongoing journals documenting business strategy, growth mechanics, and operational efficiency.', color: 'var(--blue)' },
+              { step: '04', title: 'CASE STUDIES', body: 'Real-world examinations of successful implementations, challenges overcome, and key takeaways.', color: 'var(--red)' },
             ].map(({ step, title, body, color }) => (
               <ScrollReveal key={step} delay={parseInt(step) as 0 | 1 | 2 | 3 | 4 | 5}>
                 <div
