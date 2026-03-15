@@ -80,9 +80,9 @@ export default async function HomePage() {
         <div className="page-container" style={{ position: 'relative', zIndex: 1 }}>
           {/* Eyebrow */}
           <div className="animate-slide-up" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-            <span className="brutal-tag brutal-tag-yellow">✦ SERVERLESS</span>
-            <span className="brutal-tag">ZERO MAINTENANCE</span>
-            <span className="brutal-tag brutal-tag-red">EDGE CDN</span>
+            <span className="brutal-tag brutal-tag-yellow">✦ OM MANOJ POPHALE</span>
+            <span className="brutal-tag">RESEARCHER</span>
+            <span className="brutal-tag brutal-tag-red">WRITER</span>
           </div>
 
           {/* Main headline */}
@@ -122,8 +122,9 @@ export default async function HomePage() {
               marginBottom: '2.5rem',
             }}
           >
-            Welcome to my personal archive. A curated collection of my latest reports,
-            publications, journals, and deep dives across various subjects. Open and free to access.
+            Welcome to my personal archive. A curated collection of my research reports,
+            publications, journals, and deep dives across various subjects — by{' '}
+            <strong>Om Manoj Pophale</strong>. Open and free to read.
           </p>
 
           {/* CTA row */}
@@ -133,7 +134,7 @@ export default async function HomePage() {
             </MagneticButton>
             <MagneticButton
               as="link"
-              href="mailto:hello@example.com"
+              href="/contact"
               className="brutal-btn brutal-btn-black"
               style={{ fontSize: '0.9rem', padding: '0.85rem 2rem' }}
             >
@@ -155,9 +156,9 @@ export default async function HomePage() {
             }}
           >
             {[
-              { n: `${docs.length}`, label: 'DOCUMENTS' },
-              { n: '100+', label: 'PAGES READ' },
-              { n: '2024', label: 'LATEST ENTRY' },
+              { n: `${docs.length}`, label: 'PUBLICATIONS' },
+              { n: '5+', label: 'TOPICS COVERED' },
+              { n: '2025', label: 'LATEST ENTRY' },
               { n: '∞', label: 'INSIGHTS' },
             ].map((s) => (
               <div
@@ -356,9 +357,9 @@ export default async function HomePage() {
                 NO DOCUMENTS YET
               </h3>
               <p style={{ color: '#555', maxWidth: '420px', lineHeight: 1.6 }}>
-                There are currently no documents in the library. Please check back later for new reports and publications.
+                There are currently no documents in the library. Check back soon for new publications.
               </p>
-              <MagneticButton as="link" href="mailto:hello@example.com" className="brutal-btn" style={{ marginTop: '0.5rem' }}>
+              <MagneticButton as="link" href="/contact" className="brutal-btn" style={{ marginTop: '0.5rem' }}>
                 GET IN TOUCH ↗
               </MagneticButton>
             </div>

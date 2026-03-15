@@ -56,7 +56,7 @@ export default function Navbar() {
                     </MagneticButton>
                     <MagneticButton
                         as="link"
-                        href="mailto:hello@example.com"
+                        href="/contact"
                         className="brutal-btn text-sm"
                     >
                         CONTACT ↗
@@ -99,7 +99,7 @@ export default function Navbar() {
                         PUBLICATIONS
                     </Link>
                     <a
-                        href="mailto:hello@example.com"
+                        href="/contact"
                         className="brutal-btn"
                         style={{ textDecoration: 'none' }}
                     >
