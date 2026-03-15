@@ -11,8 +11,8 @@ import MagneticButton from '@/components/MagneticButton';
 import ReaderToolbar from '@/components/ReaderToolbar';
 import TableOfContents from '@/components/TableOfContents';
 
-export const dynamic = 'force-static';
-export const dynamicParams = false;
+export const revalidate = 60; // ISR
+export const dynamicParams = true; // allow new documents not built at deploy time to be rendered on demand
 
 export async function generateStaticParams(): Promise<{ id: string }[]> {
     try {

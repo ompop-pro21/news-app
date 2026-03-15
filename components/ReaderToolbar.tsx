@@ -3,62 +3,72 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     ZoomIn, ZoomOut, Moon, Sun, Maximize2, Minimize2,
-    Copy, Printer, Type, BookOpen, Clock, Share2, Check
+    Copy, Printer, Type, BookOpen, Clock, Share2, Check, Link2
 } from 'lucide-react';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-interface Props {
-    title: string;
-    readingTime: number;
-    wordCount: number;
-}
-
-// ── Highlight-to-share tooltip ─────────────────────────────────────────────
-function HighlightShareTooltip() {
+// ─────────────────────────────────────────────────────────────
+// HIGHLIGHT → SHARE TOOLTIP
+// ─────────────────────────────────────────────────────────────
+function HighlightShareTooltip({ title }: { title: string }) {
     const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
     const [copied, setCopied] = useState(false);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+    const hide = () => setTooltip(null);
+
     const handleMouseUp = useCallback(() => {
-        const sel = window.getSelection();
-        const text = sel?.toString().trim();
-        if (!text || text.length < 5) { setTooltip(null); return; }
+        // Small delay so the mousedown on the tooltip itself doesn't clear the selection
+        setTimeout(() => {
+            const sel = window.getSelection();
+            const text = sel?.toString().trim() ?? '';
+            if (text.length < 5) { hide(); return; }
 
-        const range = sel!.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        setTooltip({
-            x: rect.left + rect.width / 2 + window.scrollX,
-            y: rect.top + window.scrollY - 52,
-            text,
-        });
-        setCopied(false);
+            try {
+                const range = sel!.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                if (rect.width === 0 && rect.height === 0) { hide(); return; }
+                setTooltip({
+                    x: rect.left + rect.width / 2 + window.scrollX,
+                    y: rect.top + window.scrollY - 58,
+                    text,
+                });
+                setCopied(false);
+            } catch { hide(); }
+        }, 10);
     }, []);
-
-    const handleMouseDown = () => {
-        setTooltip(null);
-    };
 
     useEffect(() => {
         document.addEventListener('mouseup', handleMouseUp);
-        document.addEventListener('mousedown', handleMouseDown);
-        return () => {
-            document.removeEventListener('mouseup', handleMouseUp);
-            document.removeEventListener('mousedown', handleMouseDown);
-        };
+        return () => document.removeEventListener('mouseup', handleMouseUp);
     }, [handleMouseUp]);
 
-    const copyText = () => {
+    const copyText = async () => {
         if (!tooltip) return;
-        navigator.clipboard.writeText(`"${tooltip.text}" — Om Manoj Pophale`);
-        setCopied(true);
-        if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => setTooltip(null), 1500);
+        const payload = `"${tooltip.text}"\n\n— Om Manoj Pophale\n${window.location.href}`;
+        try {
+            await navigator.clipboard.writeText(payload);
+            setCopied(true);
+            if (timerRef.current) clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(hide, 2000);
+        } catch {
+            // Fallback for browsers without clipboard API
+            const ta = document.createElement('textarea');
+            ta.value = payload;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            setCopied(true);
+            timerRef.current = setTimeout(hide, 2000);
+        }
     };
 
-    const shareText = () => {
+    const shareOnX = () => {
         if (!tooltip) return;
-        const tweet = `"${tooltip.text.slice(0, 200)}" — from Om Manoj Pophale's archive\n${window.location.href}`;
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`, '_blank');
+        const tw = `"${tooltip.text.slice(0, 220)}"\n\n— Om Manoj Pophale\n${window.location.href}`;
+        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(tw)}`, '_blank', 'noopener,noreferrer');
     };
 
     if (!tooltip) return null;
@@ -70,279 +80,401 @@ function HighlightShareTooltip() {
                 left: tooltip.x,
                 top: tooltip.y,
                 transform: 'translateX(-50%)',
-                zIndex: 9000,
+                zIndex: 9900,
                 display: 'flex',
-                gap: '2px',
-                background: 'var(--black)',
+                background: '#0a0a0a',
                 border: '2px solid var(--yellow)',
                 boxShadow: '4px 4px 0 var(--yellow)',
                 animation: 'slideUp 0.15s ease both',
+                whiteSpace: 'nowrap',
             }}
+            // prevent mousedown inside tooltip from clearing selection
+            onMouseDown={e => e.preventDefault()}
         >
             <button
                 onClick={copyText}
-                title="Copy highlighted text"
-                style={{
-                    background: 'none', border: 'none', color: copied ? 'var(--green)' : 'var(--yellow)',
-                    padding: '0.4rem 0.75rem', cursor: 'pointer', fontFamily: 'var(--font-mono)',
-                    fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em',
-                    display: 'flex', alignItems: 'center', gap: '0.3rem',
-                    transition: 'color 0.2s ease',
-                }}
+                style={btnStyle(copied ? 'var(--green)' : 'var(--yellow)')}
             >
                 {copied ? <><Check size={12} /> COPIED!</> : <><Copy size={12} /> COPY</>}
             </button>
-            <div style={{ width: 1, background: '#333', margin: '0.25rem 0' }} />
-            <button
-                onClick={shareText}
-                title="Share on X"
-                style={{
-                    background: 'none', border: 'none', color: 'var(--white)',
-                    padding: '0.4rem 0.75rem', cursor: 'pointer', fontFamily: 'var(--font-mono)',
-                    fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.08em',
-                    display: 'flex', alignItems: 'center', gap: '0.3rem',
-                }}
-            >
+            <div style={{ width: 1, background: '#333', margin: '4px 0' }} />
+            <button onClick={shareOnX} style={btnStyle('var(--white)')}>
                 <Share2 size={12} /> SHARE ON X
             </button>
         </div>
     );
 }
 
-// ── Reading Timer ──────────────────────────────────────────────────────────
-function ReadingTimer({ expectedMinutes }: { expectedMinutes: number }) {
+function btnStyle(color: string): React.CSSProperties {
+    return {
+        background: 'none', border: 'none', color,
+        padding: '0.4rem 0.8rem', cursor: 'pointer',
+        fontFamily: 'var(--font-mono)', fontWeight: 700,
+        fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.08em',
+        display: 'flex', alignItems: 'center', gap: '0.3rem',
+        transition: 'opacity 0.15s ease',
+    };
+}
+
+// ─────────────────────────────────────────────────────────────
+// READING TIMER
+// ─────────────────────────────────────────────────────────────
+function ReadingTimer({ minutes }: { minutes: number }) {
     const [seconds, setSeconds] = useState(0);
-    const [active, setActive] = useState(true);
 
     useEffect(() => {
-        if (!active) return;
-        const id = setInterval(() => setSeconds(s => s + 1), 1000);
+        const id = setInterval(() => {
+            if (!document.hidden) setSeconds(s => s + 1);
+        }, 1000);
         return () => clearInterval(id);
-    }, [active]);
-
-    // Pause when tab is hidden
-    useEffect(() => {
-        const onVis = () => setActive(!document.hidden);
-        document.addEventListener('visibilitychange', onVis);
-        return () => document.removeEventListener('visibilitychange', onVis);
     }, []);
 
     const mm = Math.floor(seconds / 60).toString().padStart(2, '0');
     const ss = (seconds % 60).toString().padStart(2, '0');
-    const pct = Math.min(100, Math.round((seconds / (expectedMinutes * 60)) * 100));
+    const pct = Math.min(100, Math.round((seconds / (minutes * 60)) * 100));
 
     return (
-        <div style={{
-            display: 'flex', alignItems: 'center', gap: '0.5rem',
-            fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 700,
-            color: '#888', userSelect: 'none',
-        }}>
-            <Clock size={12} />
-            <span>{mm}:{ss}</span>
-            <div style={{ width: 40, height: 4, background: '#e5e5e5', border: '1px solid #ccc', overflow: 'hidden' }}>
-                <div style={{ width: `${pct}%`, height: '100%', background: pct >= 100 ? 'var(--green)' : 'var(--black)', transition: 'width 1s linear' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 700, color: '#888' }}>
+            <Clock size={11} />
+            <span style={{ letterSpacing: '0.05em' }}>{mm}:{ss}</span>
+            <div title={`${pct}% of estimated read time`} style={{ width: 36, height: 4, background: '#ddd', border: '1.5px solid #bbb', borderRadius: 0, overflow: 'hidden' }}>
+                <div style={{ width: `${pct}%`, height: '100%', background: pct >= 100 ? 'var(--green)' : 'var(--black)', transition: 'width 1s linear, background 0.3s ease' }} />
             </div>
-            <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>{pct}%</span>
+            <span style={{ fontSize: '0.58rem', opacity: 0.55 }}>{pct}%</span>
         </div>
     );
 }
 
-// ── Main Toolbar ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// MAIN TOOLBAR
+// ─────────────────────────────────────────────────────────────
+interface Props { title: string; readingTime: number; wordCount: number; }
+
 export default function ReaderToolbar({ title, readingTime, wordCount }: Props) {
-    const [fontSize, setFontSize] = useState(18); // px
+    const [fontSize, setFontSize] = useState(18);
     const [darkMode, setDarkMode] = useState(false);
     const [focusMode, setFocusMode] = useState(false);
+    const [isSerif, setIsSerif] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
 
-    // Apply font size to article
+    // ── Font size ────────────────────────────────────────────
     useEffect(() => {
-        const article = document.getElementById('article-body');
-        if (article) article.style.fontSize = `${fontSize}px`;
+        const el = document.getElementById('article-body');
+        if (el) el.style.fontSize = `${fontSize}px`;
     }, [fontSize]);
 
-    // Dark mode on article
+    // ── Dark mode — covers ALL text + backgrounds + prose ────
     useEffect(() => {
-        const article = document.getElementById('article-body');
-        if (!article) return;
-        article.style.background = darkMode ? '#1a1a1a' : 'var(--white)';
-        article.style.color = darkMode ? '#e5e5e5' : 'var(--black)';
-        // Prose vars
-        const root = document.documentElement;
-        root.style.setProperty('--reader-bg', darkMode ? '#1a1a1a' : '');
+        const el = document.getElementById('article-body');
+        if (!el) return;
+
+        if (darkMode) {
+            el.style.background = '#1c1c1c';
+            el.style.color = '#d4d4d4';
+            el.style.borderColor = '#444';
+            el.style.boxShadow = '6px 6px 0 #333';
+
+            // Patch all child text nodes through CSS custom props
+            el.style.setProperty('--tw-prose-body', '#d4d4d4');
+            el.style.setProperty('--tw-prose-headings', '#f5f5f5');
+            el.style.setProperty('--tw-prose-bold', '#f5f5f5');
+            el.style.setProperty('--tw-prose-links', '#93c5fd');
+            el.style.setProperty('--tw-prose-counters', '#aaa');
+            el.style.setProperty('--tw-prose-bullets', '#aaa');
+            el.style.setProperty('--tw-prose-hr', '#444');
+            el.style.setProperty('--tw-prose-quotes', '#d4d4d4');
+            el.style.setProperty('--tw-prose-quote-borders', '#555');
+            el.style.setProperty('--tw-prose-captions', '#888');
+            el.style.setProperty('--tw-prose-code', '#f5f5f5');
+            el.style.setProperty('--tw-prose-pre-bg', '#111');
+            el.style.setProperty('--tw-prose-td-borders', '#444');
+            el.style.setProperty('--tw-prose-th-borders', '#555');
+
+            // Force all direct paragraph/heading elements to be visible
+            el.querySelectorAll('p, li, blockquote, td, th, caption, span, div, dt, dd, figcaption').forEach((node) => {
+                (node as HTMLElement).style.color = '';   // let CSS vars do the work
+            });
+            el.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((node) => {
+                (node as HTMLElement).style.color = '#f5f5f5';
+            });
+            el.querySelectorAll('a').forEach((node) => {
+                (node as HTMLElement).style.color = '#93c5fd';
+            });
+            el.querySelectorAll('code:not(pre code)').forEach((node) => {
+                (node as HTMLElement).style.background = '#2a2a2a';
+                (node as HTMLElement).style.borderColor = '#555';
+                (node as HTMLElement).style.color = '#f5f5f5';
+            });
+
+            // Flip special brutalist borders that used --black
+            el.querySelectorAll('h2, h3').forEach((node) => {
+                (node as HTMLElement).style.borderColor = '#555';
+            });
+            el.querySelectorAll('blockquote').forEach((node) => {
+                (node as HTMLElement).style.background = '#252525';
+                (node as HTMLElement).style.borderColor = '#555';
+                (node as HTMLElement).style.color = '#d4d4d4';
+            });
+            el.querySelectorAll('tr:nth-child(even) td').forEach((node) => {
+                (node as HTMLElement).style.background = '#252525';
+            });
+        } else {
+            // Restore everything
+            el.style.background = '';
+            el.style.color = '';
+            el.style.borderColor = '';
+            el.style.boxShadow = '';
+
+            const cssVars = [
+                '--tw-prose-body', '--tw-prose-headings', '--tw-prose-bold',
+                '--tw-prose-links', '--tw-prose-counters', '--tw-prose-bullets',
+                '--tw-prose-hr', '--tw-prose-quotes', '--tw-prose-quote-borders',
+                '--tw-prose-captions', '--tw-prose-code', '--tw-prose-pre-bg',
+                '--tw-prose-td-borders', '--tw-prose-th-borders',
+            ];
+            cssVars.forEach(v => el.style.removeProperty(v));
+
+            el.querySelectorAll('h1,h2,h3,h4,h5,h6,a,p,li,blockquote,td,th,code,span,div').forEach(node => {
+                const n = node as HTMLElement;
+                n.style.color = '';
+                n.style.background = '';
+                n.style.borderColor = '';
+            });
+            el.querySelectorAll('tr:nth-child(even) td').forEach(node => {
+                (node as HTMLElement).style.background = '';
+            });
+        }
     }, [darkMode]);
 
-    // Focus mode — hide navbar, sidebar, header
+    // ── Font family ──────────────────────────────────────────
+    useEffect(() => {
+        const el = document.getElementById('article-body');
+        if (!el) return;
+        el.style.fontFamily = isSerif
+            ? 'Georgia, "Times New Roman", serif'
+            : 'var(--font-body)';
+    }, [isSerif]);
+
+    // ── Focus mode ───────────────────────────────────────────
     useEffect(() => {
         const nav = document.querySelector('nav') as HTMLElement | null;
         const sidebar = document.querySelector('.reader-sidebar') as HTMLElement | null;
         const docHeader = document.querySelector('header') as HTMLElement | null;
         const footer = document.querySelector('footer') as HTMLElement | null;
+        const breadcrumb = document.querySelector('[data-breadcrumb]') as HTMLElement | null;
 
-        const els = [nav, sidebar, docHeader, footer];
-        els.forEach(el => {
+        [nav, sidebar, docHeader, footer, breadcrumb].forEach(el => {
             if (!el) return;
-            el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            el.style.transition = 'opacity 0.4s ease, pointer-events 0s';
             el.style.opacity = focusMode ? '0' : '1';
             el.style.pointerEvents = focusMode ? 'none' : '';
         });
     }, [focusMode]);
 
-    const copyLink = () => {
-        navigator.clipboard.writeText(window.location.href);
+    // ── Copy link ─────────────────────────────────────────────
+    const copyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+        } catch {
+            const ta = document.createElement('textarea');
+            ta.value = window.location.href;
+            ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            document.execCommand('copy'); document.body.removeChild(ta);
+        }
         setLinkCopied(true);
         setTimeout(() => setLinkCopied(false), 2000);
     };
 
     const printDoc = () => window.print();
 
-    const iconBtn = (
-        onClick: () => void,
-        icon: React.ReactNode,
-        label: string,
-        active?: boolean,
-        highlight?: boolean,
-    ) => (
-        <button
-            onClick={onClick}
-            title={label}
-            style={{
-                background: active ? 'var(--black)' : highlight ? 'var(--yellow)' : 'transparent',
-                color: active ? 'var(--white)' : active ? 'var(--yellow)' : 'var(--black)',
-                border: '2px solid var(--black)',
-                padding: '0.45rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.15s var(--ease-bounce)',
-                boxShadow: active ? 'var(--shadow-sm)' : 'none',
-            }}
-            onMouseEnter={e => {
-                if (!active) e.currentTarget.style.background = '#f0f0f0';
-            }}
-            onMouseLeave={e => {
-                if (!active) e.currentTarget.style.background = 'transparent';
-            }}
-            onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.92)'; }}
-            onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-        >
-            {icon}
-        </button>
-    );
-
+    // ─────────────────────────────────────────────────────────
     return (
         <>
-            {/* Highlight-to-share tooltip (absolute positioned) */}
-            <HighlightShareTooltip />
+            <HighlightShareTooltip title={title} />
 
-            {/* Sticky toolbar strip */}
+            {/* ── Sticky toolbar ─────────────────────────────── */}
             <div
+                data-reader-toolbar
                 style={{
                     position: 'sticky',
                     top: 64,
-                    zIndex: 100,
-                    background: focusMode ? 'rgba(250,247,240,0.92)' : 'var(--cream2)',
-                    backdropFilter: 'blur(8px)',
+                    zIndex: 200,
+                    background: focusMode ? 'rgba(250,247,240,0.85)' : 'var(--cream2)',
+                    backdropFilter: 'blur(6px)',
+                    WebkitBackdropFilter: 'blur(6px)',
                     borderBottom: '3px solid var(--black)',
-                    padding: '0.5rem 0',
-                    opacity: focusMode ? 0.3 : 1,
+                    padding: '0.45rem 0',
                     transition: 'opacity 0.4s ease',
+                    opacity: focusMode ? 0.25 : 1,
                 }}
-                onMouseEnter={e => { if (focusMode) e.currentTarget.style.opacity = '1'; }}
-                onMouseLeave={e => { if (focusMode) e.currentTarget.style.opacity = '0.3'; }}
+                onMouseEnter={e => { if (focusMode) (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+                onMouseLeave={e => { if (focusMode) (e.currentTarget as HTMLElement).style.opacity = '0.25'; }}
             >
-                <div
-                    className="page-container"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        gap: '0.5rem',
-                    }}
-                >
-                    {/* Left: reading timer & stats */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: '0.4rem',
-                            fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
-                            fontWeight: 700, color: '#888',
-                        }}>
-                            <BookOpen size={12} />
-                            <span>{wordCount.toLocaleString()} words · {readingTime} min</span>
+                <div className="page-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+
+                    {/* Left */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontFamily: 'var(--font-mono)', fontSize: '0.63rem', fontWeight: 700, color: '#888' }}>
+                            <BookOpen size={11} />
+                            <span>{wordCount.toLocaleString()} words · ~{readingTime} min</span>
                         </div>
-                        <ReadingTimer expectedMinutes={readingTime} />
+                        <ReadingTimer minutes={readingTime} />
                     </div>
 
-                    {/* Right: control buttons */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    {/* Right controls */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
 
                         {/* Font size */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                            {iconBtn(() => setFontSize(f => Math.max(14, f - 1)), <ZoomOut size={15} />, 'Decrease font size')}
-                            <div style={{
-                                fontFamily: 'var(--font-mono)', fontWeight: 700,
-                                fontSize: '0.65rem', color: '#666', minWidth: '2.2rem',
-                                textAlign: 'center', border: '2px solid #ddd', padding: '0.4rem 0.25rem',
-                            }}>
-                                {fontSize}px
-                            </div>
-                            {iconBtn(() => setFontSize(f => Math.min(28, f + 1)), <ZoomIn size={15} />, 'Increase font size')}
+                        <TB onClick={() => setFontSize(f => Math.max(14, f - 1))} title="Decrease font size"><ZoomOut size={14} /></TB>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.6rem', color: '#666', minWidth: '2rem', textAlign: 'center', border: '2px solid #ccc', padding: '0.35rem 0.2rem', letterSpacing: 0 }}>
+                            {fontSize}
                         </div>
+                        <TB onClick={() => setFontSize(f => Math.min(28, f + 1))} title="Increase font size"><ZoomIn size={14} /></TB>
 
-                        <div style={{ width: 1, height: 24, background: '#ccc', margin: '0 0.25rem' }} />
+                        <Divider />
 
-                        {/* Dark Mode */}
-                        {iconBtn(() => setDarkMode(d => !d), darkMode ? <Sun size={15} /> : <Moon size={15} />, darkMode ? 'Light mode' : 'Dark mode', darkMode)}
+                        {/* Font family toggle */}
+                        <TB onClick={() => setIsSerif(s => !s)} title={isSerif ? 'Switch to sans-serif' : 'Switch to serif'} active={isSerif}>
+                            <span style={{ fontFamily: isSerif ? 'Georgia, serif' : 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 700 }}>Aa</span>
+                        </TB>
+
+                        <Divider />
+
+                        {/* Dark mode */}
+                        <TB onClick={() => setDarkMode(d => !d)} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} active={darkMode}>
+                            {darkMode ? <Sun size={14} /> : <Moon size={14} />}
+                        </TB>
 
                         {/* Focus / Zen mode */}
-                        {iconBtn(() => setFocusMode(f => !f), focusMode ? <Minimize2 size={15} /> : <Maximize2 size={15} />, focusMode ? 'Exit Focus Mode' : 'Focus Mode (hides UI)', focusMode)}
+                        <TB onClick={() => setFocusMode(f => !f)} title={focusMode ? 'Exit focus mode' : 'Enter focus mode (hides distractions)'} active={focusMode}>
+                            {focusMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                        </TB>
 
-                        <div style={{ width: 1, height: 24, background: '#ccc', margin: '0 0.25rem' }} />
+                        <Divider />
 
                         {/* Copy link */}
-                        {iconBtn(copyLink, linkCopied ? <Check size={15} /> : <Copy size={15} />, 'Copy link', false, linkCopied)}
+                        <TB onClick={copyLink} title="Copy link to this report" active={linkCopied}>
+                            {linkCopied ? <Check size={14} /> : <Link2 size={14} />}
+                        </TB>
 
                         {/* Print */}
-                        {iconBtn(printDoc, <Printer size={15} />, 'Print / Save as PDF')}
+                        <TB onClick={printDoc} title="Print / Save as PDF">
+                            <Printer size={14} />
+                        </TB>
 
-                        {/* Font toggle: serif ↔ sans */}
-                        <button
-                            title="Toggle reading font"
-                            onClick={() => {
-                                const el = document.getElementById('article-body');
-                                if (!el) return;
-                                const isSerif = el.style.fontFamily.includes('Georgia');
-                                el.style.fontFamily = isSerif
-                                    ? 'var(--font-body)'
-                                    : 'Georgia, "Times New Roman", serif';
-                            }}
-                            style={{
-                                background: 'transparent', border: '2px solid var(--black)',
-                                padding: '0.35rem 0.6rem', cursor: 'pointer', fontFamily: 'Georgia, serif',
-                                fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.3rem',
-                                transition: 'all 0.15s ease',
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = '#f0f0f0'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-                            onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.92)'; }}
-                            onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-                        >
-                            <Type size={13} /> Aa
-                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* Print styles */}
+            {/* ── Print styles + watermark ────────────────────── */}
             <style>{`
+                /* Watermark — faint diagonal text on every printed page */
                 @media print {
-                    nav, .reader-sidebar, header, #back-to-top,
-                    [data-reader-toolbar], footer { display: none !important; }
-                    #article-body { border: none !important; box-shadow: none !important; padding: 0 !important; }
+                    body::after {
+                        content: 'Om Manoj Pophale — ommanojpophale.com';
+                        position: fixed;
+                        bottom: 40px;
+                        right: 40px;
+                        font-family: 'Space Grotesk', sans-serif;
+                        font-size: 11pt;
+                        font-weight: 700;
+                        color: rgba(0, 0, 0, 0.10);
+                        letter-spacing: 0.06em;
+                        text-transform: uppercase;
+                        pointer-events: none;
+                        z-index: 9999;
+                    }
+                    /* Diagonal full-page watermark */
+                    body::before {
+                        content: 'OM MANOJ POPHALE';
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%) rotate(-35deg);
+                        font-family: 'Space Grotesk', sans-serif;
+                        font-size: 52pt;
+                        font-weight: 900;
+                        color: rgba(0, 0, 0, 0.04);
+                        pointer-events: none;
+                        white-space: nowrap;
+                        z-index: 9999;
+                        letter-spacing: 0.1em;
+                    }
+                    nav,
+                    [data-reader-toolbar],
+                    [data-breadcrumb],
+                    .reader-sidebar,
+                    #back-to-top,
+                    footer {
+                        display: none !important;
+                    }
+                    #article-body {
+                        border: none !important;
+                        box-shadow: none !important;
+                        padding: 0 !important;
+                        max-width: 100% !important;
+                        font-size: 12pt !important;
+                        color: #000 !important;
+                        background: #fff !important;
+                    }
+                    .reader-grid {
+                        display: block !important;
+                    }
+                    header {
+                        background: #fff !important;
+                        border-bottom: 2px solid #000 !important;
+                        padding: 1cm 0 0.5cm !important;
+                    }
                     body { background: white !important; }
+                    a { color: #000 !important; text-decoration: underline !important; }
+                }
+
+                /* Animate tooltip */
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+                    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
                 }
             `}</style>
         </>
     );
+}
+
+// ── Small reusable button ────────────────────────────────────
+function TB({
+    onClick, title, children, active = false,
+}: {
+    onClick: () => void;
+    title: string;
+    children: React.ReactNode;
+    active?: boolean;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            title={title}
+            style={{
+                background: active ? 'var(--black)' : 'transparent',
+                color: active ? 'var(--yellow)' : 'var(--black)',
+                border: '2px solid var(--black)',
+                padding: '0.38rem 0.45rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.12s var(--ease-bounce)',
+                lineHeight: 1,
+            }}
+            onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = '#e8e8e8'; } }}
+            onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; } }}
+            onMouseDown={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(0.88)'; }}
+            onMouseUp={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+        >
+            {children}
+        </button>
+    );
+}
+
+function Divider() {
+    return <div style={{ width: 1, height: 22, background: '#ccc', margin: '0 0.2rem' }} />;
 }

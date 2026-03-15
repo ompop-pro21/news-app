@@ -1,5 +1,5 @@
 import { listDocFiles } from '@/lib/google-drive';
-import { slugify, excerptFromHtml, writeSearchIndex } from '@/lib/utils';
+import { slugify, excerptFromHtml } from '@/lib/utils';
 import { parseDocx, ParseResult } from '@/lib/mammoth-parser';
 import { downloadDocBuffer } from '@/lib/google-drive';
 import ReportCard from '@/components/ReportCard';
@@ -8,7 +8,7 @@ import ScrollReveal from '@/components/ScrollReveal';
 import MarqueeBar from '@/components/MarqueeBar';
 import MagneticButton from '@/components/MagneticButton';
 
-export const dynamic = 'force-static';
+export const revalidate = 60; // ISR: revalidate every 60 seconds
 
 interface DocMeta {
   id: string;
@@ -36,7 +36,6 @@ async function getAllDocs(): Promise<DocMeta[]> {
       }
     }
 
-    writeSearchIndex(docs);
     return docs;
   } catch {
     // Return empty array when Drive credentials are not configured
@@ -270,7 +269,7 @@ export default async function HomePage() {
                   {docs.length > 0 ? `${docs.length} DOCS PUBLISHED` : 'DOCUMENT LIBRARY'}
                 </h2>
               </div>
-              <SearchClient />
+              <SearchClient entries={docs} />
             </div>
           </ScrollReveal>
 

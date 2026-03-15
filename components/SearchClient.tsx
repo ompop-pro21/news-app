@@ -9,20 +9,11 @@ interface SearchEntry {
     modifiedTime: string;
 }
 
-export default function SearchClient() {
+export default function SearchClient({ entries }: { entries: SearchEntry[] }) {
     const [query, setQuery] = useState('');
-    const [entries, setEntries] = useState<SearchEntry[]>([]);
     const [results, setResults] = useState<SearchEntry[]>([]);
     const [open, setOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
-
-    // Fetch the static search index once on mount
-    useEffect(() => {
-        fetch('/search-index.json')
-            .then((r) => r.json())
-            .then((data: SearchEntry[]) => setEntries(data))
-            .catch(() => {/* no index yet — silently skip */ });
-    }, []);
 
     // Close dropdown on outside click
     useEffect(() => {
