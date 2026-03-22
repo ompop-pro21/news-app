@@ -7,6 +7,7 @@ import SearchClient from '@/components/SearchClient';
 import ScrollReveal from '@/components/ScrollReveal';
 import MarqueeBar from '@/components/MarqueeBar';
 import MagneticButton from '@/components/MagneticButton';
+import AnimatedCounter from '@/components/AnimatedCounter';
 
 export const dynamic = 'force-static';
 
@@ -166,7 +167,9 @@ export default async function HomePage() {
                 className="stat-card"
                 style={{ borderWidth: 0, borderRight: '3px solid var(--black)', minWidth: '120px' }}
               >
-                <span className="stat-number">{s.n}</span>
+                <span className="stat-number">
+                  <AnimatedCounter end={s.n} />
+                </span>
                 <span className="stat-label">{s.label}</span>
               </div>
             ))}

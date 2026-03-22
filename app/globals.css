@@ -765,9 +765,20 @@ body {
   box-shadow: 6px 6px 0 #333 !important;
 }
 
-#article-body.dark-mode *:not(pre):not(code):not(pre *) {
+#article-body.dark-mode *:not(pre):not(code):not(pre *):not([data-tts-section]):not([data-tts-section] *) {
   color: #e0e0e0 !important;
   border-color: #444 !important;
+}
+
+/* TTS section always keeps its own colors in dark mode */
+#article-body.dark-mode [data-tts-section] {
+  color: var(--black) !important;
+}
+#article-body.dark-mode [data-tts-section] * {
+  color: var(--black) !important;
+}
+#article-body.dark-mode [data-tts-section] button {
+  color: var(--white) !important;
 }
 
 #article-body.dark-mode h1,
@@ -856,5 +867,193 @@ body {
   }
   [data-reader-toolbar] [data-toolbar-left] {
     display: none !important;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────── */
+/* MICRO INTERACTIONS & LANDING PAGE POLISH                            */
+/* ────────────────────────────────────────────────────────────────── */
+
+/* Card 3D tilt on hover */
+.brutal-card {
+  transition:
+    box-shadow 0.25s var(--ease-bounce),
+    transform 0.25s var(--ease-bounce);
+  will-change: transform;
+}
+
+.brutal-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translate(-3px, -3px) rotate(-0.5deg);
+}
+
+.brutal-card:active {
+  transform: translate(1px, 1px) rotate(0deg);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Stat card interactive lift */
+.stat-card {
+  transition: transform 0.2s var(--ease-bounce), background 0.2s ease;
+  cursor: default;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  background: var(--yellow) !important;
+}
+
+.stat-card:hover .stat-number {
+  color: var(--black);
+  transform: scale(1.08);
+  transition: transform 0.2s var(--ease-bounce);
+}
+
+/* Button bounce pop on hover */
+.brutal-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.brutal-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.brutal-btn:hover::after {
+  transform: translateX(0);
+}
+
+/* Hero text shimmer */
+.hero-headline {
+  background-image: linear-gradient(
+    120deg,
+    var(--black) 0%,
+    var(--black) 40%,
+    var(--yellow2) 50%,
+    var(--black) 60%,
+    var(--black) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 100% 0; }
+  50% { background-position: -100% 0; }
+}
+
+/* Stagger entrance for cards in the grid */
+.reveal:nth-child(1) { transition-delay: 0.05s; }
+.reveal:nth-child(2) { transition-delay: 0.12s; }
+.reveal:nth-child(3) { transition-delay: 0.19s; }
+.reveal:nth-child(4) { transition-delay: 0.26s; }
+.reveal:nth-child(5) { transition-delay: 0.33s; }
+.reveal:nth-child(6) { transition-delay: 0.40s; }
+
+/* Tag chip bounce when hovered */
+.brutal-tag {
+  transition: transform 0.15s var(--ease-bounce), box-shadow 0.15s ease;
+}
+
+.brutal-tag:hover {
+  transform: scale(1.08) translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* Navbar link underline animation */
+nav a {
+  position: relative;
+}
+
+nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--black);
+  transition: width 0.25s var(--ease-out);
+}
+
+nav a:hover::after {
+  width: 100%;
+}
+
+/* Reading progress bar glow */
+#reading-progress {
+  box-shadow: 0 0 8px rgba(255, 225, 53, 0.5);
+}
+
+/* Smooth image reveal */
+.prose img {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: imageReveal 0.6s var(--ease-out) forwards;
+}
+
+@keyframes imageReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fun cursor trail effect on hero section */
+.hero-section {
+  cursor: crosshair;
+}
+
+/* Accent block wiggle on hover */
+.hero-headline span.accent-block:hover {
+  animation: wiggle 0.4s ease;
+}
+
+@keyframes wiggle {
+  0% { transform: rotate(-1.5deg); }
+  25% { transform: rotate(2deg) scale(1.02); }
+  50% { transform: rotate(-1deg) scale(1.03); }
+  75% { transform: rotate(1.5deg) scale(1.02); }
+  100% { transform: rotate(0deg) scale(1.02); }
+}
+
+/* Table of contents smooth highlight */
+.reader-sidebar button {
+  transition: all 0.2s var(--ease-out) !important;
+}
+
+/* Smooth page transitions */
+main {
+  animation: pageIn 0.4s var(--ease-out) both;
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile touch feedback */
+@media (hover: none) {
+  .brutal-card:active {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-xs);
+  }
+  
+  .brutal-btn:active {
+    transform: scale(0.95);
   }
 }
