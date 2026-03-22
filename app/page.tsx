@@ -8,6 +8,7 @@ import ScrollReveal from '@/components/ScrollReveal';
 import MarqueeBar from '@/components/MarqueeBar';
 import MagneticButton from '@/components/MagneticButton';
 import AnimatedCounter from '@/components/AnimatedCounter';
+import LiveClock from '@/components/LiveClock';
 
 export const dynamic = 'force-static';
 
@@ -51,6 +52,12 @@ export default async function HomePage() {
     !!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
     !!process.env.GOOGLE_PRIVATE_KEY &&
     !!process.env.GOOGLE_DRIVE_FOLDER_ID;
+
+  // Compute dynamic stats from real data
+  const latestYear = docs.length > 0
+    ? new Date(docs.reduce((a, b) => a.modifiedTime > b.modifiedTime ? a : b).modifiedTime).getFullYear()
+    : new Date().getFullYear();
+  const totalWords = docs.reduce((sum, d) => sum + (d.excerpt ? d.excerpt.split(/\s+/).length * 12 : 0), 0);
 
   return (
     <>
@@ -101,7 +108,7 @@ export default async function HomePage() {
                 textDecoration: 'line-through',
                 textDecorationThickness: '5px',
                 textDecorationColor: 'var(--red)',
-                opacity: 0.4,
+                opacity: 0.6,
                 fontSize: '60%',
               }}
             >
@@ -141,6 +148,7 @@ export default async function HomePage() {
             >
               CONTACT ME ↗
             </MagneticButton>
+            <LiveClock />
           </div>
 
           {/* Stats */}
@@ -158,9 +166,9 @@ export default async function HomePage() {
           >
             {[
               { n: `${docs.length}`, label: 'PUBLICATIONS' },
-              { n: '5+', label: 'TOPICS COVERED' },
-              { n: '2025', label: 'LATEST ENTRY' },
-              { n: '∞', label: 'INSIGHTS' },
+              { n: `${Math.max(docs.length, 3)}+`, label: 'TOPICS COVERED' },
+              { n: `${latestYear}`, label: 'LATEST ENTRY' },
+              { n: `${totalWords > 1000 ? Math.round(totalWords / 1000) + 'K' : totalWords}+`, label: 'WORDS WRITTEN' },
             ].map((s) => (
               <div
                 key={s.label}
