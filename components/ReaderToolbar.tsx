@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     ZoomIn, ZoomOut, Moon, Sun, Maximize2, Minimize2,
-    Copy, Printer, Type, BookOpen, Clock, Share2, Check, Link2
+    Copy, Printer, BookOpen, Clock, Share2, Check, Link2, Keyboard
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────
@@ -17,7 +17,6 @@ function HighlightShareTooltip({ title }: { title: string }) {
     const hide = () => setTooltip(null);
 
     const handleMouseUp = useCallback(() => {
-        // Small delay so the mousedown on the tooltip itself doesn't clear the selection
         setTimeout(() => {
             const sel = window.getSelection();
             const text = sel?.toString().trim() ?? '';
@@ -51,7 +50,6 @@ function HighlightShareTooltip({ title }: { title: string }) {
             if (timerRef.current) clearTimeout(timerRef.current);
             timerRef.current = setTimeout(hide, 2000);
         } catch {
-            // Fallback for browsers without clipboard API
             const ta = document.createElement('textarea');
             ta.value = payload;
             ta.style.position = 'fixed';
@@ -88,24 +86,23 @@ function HighlightShareTooltip({ title }: { title: string }) {
                 animation: 'slideUp 0.15s ease both',
                 whiteSpace: 'nowrap',
             }}
-            // prevent mousedown inside tooltip from clearing selection
             onMouseDown={e => e.preventDefault()}
         >
             <button
                 onClick={copyText}
-                style={btnStyle(copied ? 'var(--green)' : 'var(--yellow)')}
+                style={tooltipBtnStyle(copied ? 'var(--green)' : 'var(--yellow)')}
             >
                 {copied ? <><Check size={12} /> COPIED!</> : <><Copy size={12} /> COPY</>}
             </button>
             <div style={{ width: 1, background: '#333', margin: '4px 0' }} />
-            <button onClick={shareOnX} style={btnStyle('var(--white)')}>
+            <button onClick={shareOnX} style={tooltipBtnStyle('var(--white)')}>
                 <Share2 size={12} /> SHARE ON X
             </button>
         </div>
     );
 }
 
-function btnStyle(color: string): React.CSSProperties {
+function tooltipBtnStyle(color: string): React.CSSProperties {
     return {
         background: 'none', border: 'none', color,
         padding: '0.4rem 0.8rem', cursor: 'pointer',
@@ -146,6 +143,32 @@ function ReadingTimer({ minutes }: { minutes: number }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// SCROLL PROGRESS HOOK
+// ─────────────────────────────────────────────────────────────
+function useScrollProgress(readingTime: number) {
+    const [pctRead, setPctRead] = useState(0);
+
+    useEffect(() => {
+        function update() {
+            const article = document.getElementById('article-body');
+            if (!article) return;
+            const { top, height } = article.getBoundingClientRect();
+            const windowH = window.innerHeight;
+            const total = height - windowH;
+            const scrolled = -top;
+            const pct = Math.min(100, Math.max(0, Math.round((scrolled / total) * 100)));
+            setPctRead(pct);
+        }
+        window.addEventListener('scroll', update, { passive: true });
+        update();
+        return () => window.removeEventListener('scroll', update);
+    }, []);
+
+    const minsLeft = Math.max(0, Math.ceil(readingTime * (1 - pctRead / 100)));
+    return { pctRead, minsLeft };
+}
+
+// ─────────────────────────────────────────────────────────────
 // MAIN TOOLBAR
 // ─────────────────────────────────────────────────────────────
 interface Props { title: string; readingTime: number; wordCount: number; }
@@ -156,97 +179,26 @@ export default function ReaderToolbar({ title, readingTime, wordCount }: Props) 
     const [focusMode, setFocusMode] = useState(false);
     const [isSerif, setIsSerif] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
+    const { pctRead, minsLeft } = useScrollProgress(readingTime);
 
-    // ── Font size ────────────────────────────────────────────
+    // ── Font size via CSS variable ──────────────────────────
     useEffect(() => {
         const el = document.getElementById('article-body');
-        if (el) el.style.fontSize = `${fontSize}px`;
+        if (el) el.style.setProperty('--reader-font-size', `${fontSize}px`);
     }, [fontSize]);
 
-    // ── Dark mode — covers ALL text + backgrounds + prose ────
+    // ── Dark mode via CSS class ─────────────────────────────
     useEffect(() => {
         const el = document.getElementById('article-body');
         if (!el) return;
-
         if (darkMode) {
-            el.style.background = '#1c1c1c';
-            el.style.color = '#d4d4d4';
-            el.style.borderColor = '#444';
-            el.style.boxShadow = '6px 6px 0 #333';
-
-            // Patch all child text nodes through CSS custom props
-            el.style.setProperty('--tw-prose-body', '#d4d4d4');
-            el.style.setProperty('--tw-prose-headings', '#f5f5f5');
-            el.style.setProperty('--tw-prose-bold', '#f5f5f5');
-            el.style.setProperty('--tw-prose-links', '#93c5fd');
-            el.style.setProperty('--tw-prose-counters', '#aaa');
-            el.style.setProperty('--tw-prose-bullets', '#aaa');
-            el.style.setProperty('--tw-prose-hr', '#444');
-            el.style.setProperty('--tw-prose-quotes', '#d4d4d4');
-            el.style.setProperty('--tw-prose-quote-borders', '#555');
-            el.style.setProperty('--tw-prose-captions', '#888');
-            el.style.setProperty('--tw-prose-code', '#f5f5f5');
-            el.style.setProperty('--tw-prose-pre-bg', '#111');
-            el.style.setProperty('--tw-prose-td-borders', '#444');
-            el.style.setProperty('--tw-prose-th-borders', '#555');
-
-            // Force all direct paragraph/heading elements to be visible
-            el.querySelectorAll('p, li, blockquote, td, th, caption, span, div, dt, dd, figcaption').forEach((node) => {
-                (node as HTMLElement).style.color = '';   // let CSS vars do the work
-            });
-            el.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((node) => {
-                (node as HTMLElement).style.color = '#f5f5f5';
-            });
-            el.querySelectorAll('a').forEach((node) => {
-                (node as HTMLElement).style.color = '#93c5fd';
-            });
-            el.querySelectorAll('code:not(pre code)').forEach((node) => {
-                (node as HTMLElement).style.background = '#2a2a2a';
-                (node as HTMLElement).style.borderColor = '#555';
-                (node as HTMLElement).style.color = '#f5f5f5';
-            });
-
-            // Flip special brutalist borders that used --black
-            el.querySelectorAll('h2, h3').forEach((node) => {
-                (node as HTMLElement).style.borderColor = '#555';
-            });
-            el.querySelectorAll('blockquote').forEach((node) => {
-                (node as HTMLElement).style.background = '#252525';
-                (node as HTMLElement).style.borderColor = '#555';
-                (node as HTMLElement).style.color = '#d4d4d4';
-            });
-            el.querySelectorAll('tr:nth-child(even) td').forEach((node) => {
-                (node as HTMLElement).style.background = '#252525';
-            });
+            el.classList.add('dark-mode');
         } else {
-            // Restore everything
-            el.style.background = '';
-            el.style.color = '';
-            el.style.borderColor = '';
-            el.style.boxShadow = '';
-
-            const cssVars = [
-                '--tw-prose-body', '--tw-prose-headings', '--tw-prose-bold',
-                '--tw-prose-links', '--tw-prose-counters', '--tw-prose-bullets',
-                '--tw-prose-hr', '--tw-prose-quotes', '--tw-prose-quote-borders',
-                '--tw-prose-captions', '--tw-prose-code', '--tw-prose-pre-bg',
-                '--tw-prose-td-borders', '--tw-prose-th-borders',
-            ];
-            cssVars.forEach(v => el.style.removeProperty(v));
-
-            el.querySelectorAll('h1,h2,h3,h4,h5,h6,a,p,li,blockquote,td,th,code,span,div').forEach(node => {
-                const n = node as HTMLElement;
-                n.style.color = '';
-                n.style.background = '';
-                n.style.borderColor = '';
-            });
-            el.querySelectorAll('tr:nth-child(even) td').forEach(node => {
-                (node as HTMLElement).style.background = '';
-            });
+            el.classList.remove('dark-mode');
         }
     }, [darkMode]);
 
-    // ── Font family ──────────────────────────────────────────
+    // ── Font family ─────────────────────────────────────────
     useEffect(() => {
         const el = document.getElementById('article-body');
         if (!el) return;
@@ -255,7 +207,7 @@ export default function ReaderToolbar({ title, readingTime, wordCount }: Props) 
             : 'var(--font-body)';
     }, [isSerif]);
 
-    // ── Focus mode ───────────────────────────────────────────
+    // ── Focus mode ──────────────────────────────────────────
     useEffect(() => {
         const nav = document.querySelector('nav') as HTMLElement | null;
         const sidebar = document.querySelector('.reader-sidebar') as HTMLElement | null;
@@ -271,7 +223,48 @@ export default function ReaderToolbar({ title, readingTime, wordCount }: Props) 
         });
     }, [focusMode]);
 
-    // ── Copy link ─────────────────────────────────────────────
+    // ── Keyboard shortcuts ──────────────────────────────────
+    useEffect(() => {
+        function onKey(e: KeyboardEvent) {
+            // Don't fire when typing in inputs
+            const tag = (e.target as HTMLElement)?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+            switch (e.key) {
+                case '+':
+                case '=':
+                    e.preventDefault();
+                    setFontSize(f => Math.min(28, f + 1));
+                    break;
+                case '-':
+                case '_':
+                    e.preventDefault();
+                    setFontSize(f => Math.max(14, f - 1));
+                    break;
+                case 'd':
+                case 'D':
+                    if (!e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        setDarkMode(d => !d);
+                    }
+                    break;
+                case 'f':
+                case 'F':
+                    if (!e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        setFocusMode(f => !f);
+                    }
+                    break;
+                case 'Escape':
+                    setFocusMode(false);
+                    break;
+            }
+        }
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, []);
+
+    // ── Copy link ───────────────────────────────────────────
     const copyLink = async () => {
         try {
             await navigator.clipboard.writeText(window.location.href);
@@ -313,24 +306,29 @@ export default function ReaderToolbar({ title, readingTime, wordCount }: Props) 
             >
                 <div className="page-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
 
-                    {/* Left */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    {/* Left — word count, timer, progress (hidden on mobile) */}
+                    <div data-toolbar-left style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontFamily: 'var(--font-mono)', fontSize: '0.63rem', fontWeight: 700, color: '#888' }}>
                             <BookOpen size={11} />
                             <span>{wordCount.toLocaleString()} words · ~{readingTime} min</span>
                         </div>
                         <ReadingTimer minutes={readingTime} />
+                        {/* Scroll-based progress */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 700, color: '#888' }}>
+                            <span>{pctRead}% read</span>
+                            {minsLeft > 0 && <span style={{ opacity: 0.5 }}>· ~{minsLeft}m left</span>}
+                        </div>
                     </div>
 
                     {/* Right controls */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
 
                         {/* Font size */}
-                        <TB onClick={() => setFontSize(f => Math.max(14, f - 1))} title="Decrease font size"><ZoomOut size={14} /></TB>
+                        <TB onClick={() => setFontSize(f => Math.max(14, f - 1))} title="Decrease font size (-)"><ZoomOut size={14} /></TB>
                         <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.6rem', color: '#666', minWidth: '2rem', textAlign: 'center', border: '2px solid #ccc', padding: '0.35rem 0.2rem', letterSpacing: 0 }}>
                             {fontSize}
                         </div>
-                        <TB onClick={() => setFontSize(f => Math.min(28, f + 1))} title="Increase font size"><ZoomIn size={14} /></TB>
+                        <TB onClick={() => setFontSize(f => Math.min(28, f + 1))} title="Increase font size (+)"><ZoomIn size={14} /></TB>
 
                         <Divider />
 
@@ -342,12 +340,12 @@ export default function ReaderToolbar({ title, readingTime, wordCount }: Props) 
                         <Divider />
 
                         {/* Dark mode */}
-                        <TB onClick={() => setDarkMode(d => !d)} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} active={darkMode}>
+                        <TB onClick={() => setDarkMode(d => !d)} title={darkMode ? 'Light mode (D)' : 'Dark mode (D)'} active={darkMode}>
                             {darkMode ? <Sun size={14} /> : <Moon size={14} />}
                         </TB>
 
                         {/* Focus / Zen mode */}
-                        <TB onClick={() => setFocusMode(f => !f)} title={focusMode ? 'Exit focus mode' : 'Enter focus mode (hides distractions)'} active={focusMode}>
+                        <TB onClick={() => setFocusMode(f => !f)} title={focusMode ? 'Exit focus (F / Esc)' : 'Focus mode (F)'} active={focusMode}>
                             {focusMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
                         </TB>
 
@@ -369,7 +367,6 @@ export default function ReaderToolbar({ title, readingTime, wordCount }: Props) 
 
             {/* ── Print styles + watermark ────────────────────── */}
             <style>{`
-                /* Watermark — faint diagonal text on every printed page */
                 @media print {
                     body::after {
                         content: 'Om Manoj Pophale — ommanojpophale.com';
@@ -385,7 +382,6 @@ export default function ReaderToolbar({ title, readingTime, wordCount }: Props) 
                         pointer-events: none;
                         z-index: 9999;
                     }
-                    /* Diagonal full-page watermark */
                     body::before {
                         content: 'OM MANOJ POPHALE';
                         position: fixed;
@@ -430,7 +426,6 @@ export default function ReaderToolbar({ title, readingTime, wordCount }: Props) 
                     a { color: #000 !important; text-decoration: underline !important; }
                 }
 
-                /* Animate tooltip */
                 @keyframes slideUp {
                     from { opacity: 0; transform: translateX(-50%) translateY(8px); }
                     to   { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -464,6 +459,8 @@ function TB({
                 justifyContent: 'center',
                 transition: 'all 0.12s var(--ease-bounce)',
                 lineHeight: 1,
+                minWidth: 32,
+                minHeight: 32,
             }}
             onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = '#e8e8e8'; } }}
             onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; } }}

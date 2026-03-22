@@ -735,3 +735,126 @@ body {
   pointer-events: all;
   transform: translateY(0);
 }
+
+/* ────────────────────────────────────────────────────────────────── */
+/* READER FONT SIZE VARIABLE                                          */
+/* ────────────────────────────────────────────────────────────────── */
+#article-body {
+  --reader-font-size: 18px;
+}
+
+#article-body .prose p,
+#article-body .prose li,
+#article-body .prose blockquote p,
+#article-body .prose dd,
+#article-body .prose dt,
+#article-body .prose td,
+#article-body .prose th,
+#article-body .prose figcaption {
+  font-size: var(--reader-font-size) !important;
+  line-height: 1.75 !important;
+}
+
+/* ────────────────────────────────────────────────────────────────── */
+/* DARK MODE OVERRIDES (class-based, overrides mammoth inline styles)  */
+/* ────────────────────────────────────────────────────────────────── */
+#article-body.dark-mode {
+  background: #1a1a1a !important;
+  color: #e0e0e0 !important;
+  border-color: #444 !important;
+  box-shadow: 6px 6px 0 #333 !important;
+}
+
+#article-body.dark-mode *:not(pre):not(code):not(pre *) {
+  color: #e0e0e0 !important;
+  border-color: #444 !important;
+}
+
+#article-body.dark-mode h1,
+#article-body.dark-mode h2,
+#article-body.dark-mode h3,
+#article-body.dark-mode h4,
+#article-body.dark-mode h5,
+#article-body.dark-mode h6,
+#article-body.dark-mode strong,
+#article-body.dark-mode b {
+  color: #f5f5f5 !important;
+}
+
+#article-body.dark-mode a {
+  color: #93c5fd !important;
+}
+
+#article-body.dark-mode blockquote {
+  background: #252525 !important;
+  border-left-color: var(--yellow) !important;
+  border-color: #555 !important;
+  border-left-color: var(--yellow) !important;
+}
+
+#article-body.dark-mode code:not(pre code) {
+  background: #2a2a2a !important;
+  border-color: #555 !important;
+  color: #f5f5f5 !important;
+}
+
+#article-body.dark-mode pre {
+  background: #111 !important;
+  border-color: #444 !important;
+}
+
+#article-body.dark-mode pre code {
+  color: var(--cream) !important;
+}
+
+#article-body.dark-mode table {
+  border-color: #555 !important;
+}
+
+#article-body.dark-mode th {
+  background: #333 !important;
+  color: #f5f5f5 !important;
+  border-color: #555 !important;
+}
+
+#article-body.dark-mode td {
+  border-color: #444 !important;
+}
+
+#article-body.dark-mode tr:nth-child(even) td {
+  background: #252525 !important;
+}
+
+#article-body.dark-mode tr:nth-child(odd) td {
+  background: #1a1a1a !important;
+}
+
+#article-body.dark-mode img {
+  border-color: #555 !important;
+  box-shadow: 6px 6px 0 #333 !important;
+}
+
+#article-body.dark-mode hr {
+  border-color: #444 !important;
+}
+
+#article-body.dark-mode .prose h2 {
+  border-left-color: var(--yellow) !important;
+}
+
+#article-body.dark-mode .prose h3 {
+  border-left-color: #666 !important;
+}
+
+/* ────────────────────────────────────────────────────────────────── */
+/* MOBILE TOOLBAR                                                      */
+/* ────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  [data-reader-toolbar] .page-container {
+    gap: 0.35rem !important;
+    justify-content: center !important;
+  }
+  [data-reader-toolbar] [data-toolbar-left] {
+    display: none !important;
+  }
+}
