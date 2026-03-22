@@ -9,6 +9,7 @@ import MarqueeBar from '@/components/MarqueeBar';
 import MagneticButton from '@/components/MagneticButton';
 import AnimatedCounter from '@/components/AnimatedCounter';
 import LiveClock from '@/components/LiveClock';
+import { Search, TrendingUp, BarChart3, FileText } from 'lucide-react';
 
 export const dynamic = 'force-static';
 
@@ -207,13 +208,13 @@ export default async function HomePage() {
             }}
           >
             {[
-              { label: 'RESEARCH', icon: '🔬', color: '#ffe135' },
-              { label: '•', icon: '', color: 'transparent' },
-              { label: 'STRATEGY', icon: '📈', color: '#ff6b35' },
-              { label: '•', icon: '', color: 'transparent' },
-              { label: 'ANALYSIS', icon: '📊', color: '#0033ff' },
-              { label: '•', icon: '', color: 'transparent' },
-              { label: 'DOCUMENTATION', icon: '📄', color: '#00c853' },
+              { label: 'RESEARCH', icon: <Search size={16} />, color: '#ffe135' },
+              { label: '•', icon: null, color: 'transparent' },
+              { label: 'STRATEGY', icon: <TrendingUp size={16} />, color: '#ff6b35' },
+              { label: '•', icon: null, color: 'transparent' },
+              { label: 'ANALYSIS', icon: <BarChart3 size={16} />, color: '#0033ff' },
+              { label: '•', icon: null, color: 'transparent' },
+              { label: 'DOCUMENTATION', icon: <FileText size={16} />, color: '#00c853' },
             ].map(({ label, icon, color }, i) =>
               label === '•' ? (
                 <span key={i} style={{ color: '#555', padding: '0 0.75rem', fontSize: '1.2rem' }}>•</span>
@@ -242,7 +243,7 @@ export default async function HomePage() {
       <section id="documents" style={{ paddingTop: '5rem', paddingBottom: '6rem' }}>
         <div className="page-container">
           {/* Section header */}
-          <ScrollReveal>
+          <ScrollReveal style={{ position: 'relative', zIndex: 100 }}>
             <div
               style={{
                 display: 'flex',

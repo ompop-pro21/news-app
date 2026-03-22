@@ -85,7 +85,7 @@ export default function SearchClient() {
                         background: 'var(--white)',
                         border: '3px solid var(--black)',
                         boxShadow: 'var(--shadow-md)',
-                        zIndex: 100,
+                        zIndex: 9999,
                     }}
                 >
                     {results.map((r) => (
@@ -137,7 +137,7 @@ export default function SearchClient() {
                         padding: '0.75rem 1rem',
                         fontFamily: 'var(--font-mono)',
                         fontSize: '0.8rem',
-                        zIndex: 100,
+                        zIndex: 9999,
                     }}
                 >
                     NO RESULTS FOR &quot;{query.toUpperCase()}&quot;

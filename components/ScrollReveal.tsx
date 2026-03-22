@@ -4,9 +4,10 @@ import { useEffect, useRef, type ReactNode } from 'react';
 interface ScrollRevealProps {
     children: ReactNode;
     delay?: 0 | 1 | 2 | 3 | 4 | 5;
+    style?: React.CSSProperties;
 }
 
-export default function ScrollReveal({ children, delay = 0 }: ScrollRevealProps) {
+export default function ScrollReveal({ children, delay = 0, style }: ScrollRevealProps) {
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -27,7 +28,7 @@ export default function ScrollReveal({ children, delay = 0 }: ScrollRevealProps)
     }, []);
 
     return (
-        <div ref={ref} className={`reveal reveal-delay-${delay}`} style={{ height: '100%' }}>
+        <div ref={ref} className={`reveal reveal-delay-${delay}`} style={{ height: '100%', ...style }}>
             {children}
         </div>
     );
